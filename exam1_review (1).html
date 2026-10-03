@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam 1 Review — Adaptive Practice</title>
+<style>
+  :root{
+    --ink:#242832; --ink-soft:#5b5f6b;
+    --paper:#FBFBF6; --surface:#FFFFFF; --line:#E3E0D4;
+    --indigo:#31365E; --indigo-deep:#20233d;
+    --a1:#F45B69; --a1-deep:#C43E4B; --a1-tint:#FDECEE;
+    --a2:#159895; --a2-deep:#0E6E6B; --a2-tint:#E7F6F5;
+    --a3:#E8A400; --a3-deep:#A66E00; --a3-tint:#FBF1DC;
+    --a4:#6C63B5; --a4-deep:#4A4390; --a4-tint:#EFEDFB;
+    --good:#2E7D46; --good-tint:#E7F5EA;
+    --bad:#C4362D; --bad-tint:#FCECEB;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; font-size:17px;
+  }
+  h1,h2,h3,h4{font-weight:700; color:var(--indigo-deep); margin:0 0 .4em;}
+  .wrap{max-width:900px; margin:0 auto; padding:0 20px;}
+
+  .site-header{background:var(--indigo); color:#fff; padding:32px 0 26px; border-bottom:6px solid var(--a3);}
+  .site-header h1{color:#fff; font-size:1.9rem; margin-bottom:.2em;}
+  .site-header p{color:#D9DCEF; max-width:64ch; margin:0; font-size:1rem;}
+
+  .tabs{
+    position:sticky; top:0; z-index:20; display:flex; flex-wrap:wrap; gap:6px;
+    background:var(--paper); border-bottom:2px solid var(--line); padding:10px 20px;
+    max-width:900px; margin:0 auto;
+  }
+  .tab{
+    font-weight:700; font-size:.92rem; padding:9px 15px; border-radius:999px; border:2px solid var(--line);
+    background:var(--surface); color:var(--ink); cursor:pointer;
+  }
+  .tab:focus-visible, button:focus-visible, input:focus-visible{outline:3px solid var(--indigo); outline-offset:2px;}
+  .tab.active{background:var(--indigo); border-color:var(--indigo); color:#fff;}
+  .tab[data-tab="conv"].active{background:var(--a1); border-color:var(--a1-deep);}
+  .tab[data-tab="pct"].active{background:var(--a2); border-color:var(--a2-deep);}
+  .tab[data-tab="stats"].active{background:var(--a3); border-color:var(--a3-deep); color:#3a2900;}
+  .tab[data-tab="wages"].active{background:var(--a4); border-color:var(--a4-deep);}
+  .tab[data-tab="mix"].active{background:var(--indigo-deep);}
+
+  main{padding:30px 0 80px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .intro{background:var(--surface); border:2px solid var(--line); border-radius:var(--radius); padding:16px 20px; margin-bottom:18px; font-size:.98rem; color:var(--ink-soft);}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;}
+  .chip{
+    font-size:.86rem; font-weight:700; padding:7px 13px; border-radius:999px; border:2px solid var(--line);
+    background:var(--surface); color:var(--ink-soft); cursor:pointer;
+  }
+  .chip.active{background:var(--indigo); border-color:var(--indigo); color:#fff;}
+  .chip .badge{margin-left:5px;}
+
+  .practice-shell{background:var(--surface); border:2px solid var(--line); border-radius:var(--radius); padding:24px;}
+  .status-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px;}
+  .pill{font-size:.85rem; font-weight:700; background:var(--paper); border:1px solid var(--line); border-radius:999px; padding:5px 12px;}
+  .streak-pill{background:var(--a3-tint); border-color:var(--a3-deep); color:var(--a3-deep);}
+  .mastered-banner{background:var(--good-tint); border:2px solid var(--good); border-radius:12px; padding:12px 16px; margin-bottom:14px; color:var(--good); font-weight:700;}
+
+  .problem-text{font-size:1.05rem; background:var(--indigo); color:#fff; border-radius:12px; padding:16px 18px; margin-bottom:18px; white-space:pre-line;}
+  .datatable{width:100%; border-collapse:collapse; margin:10px 0; font-size:.95rem;}
+  .datatable th, .datatable td{border:1px solid rgba(255,255,255,.35); padding:6px 9px; text-align:center;}
+
+  .field-row{display:flex; flex-wrap:wrap; gap:14px; margin:14px 0;}
+  .field{display:flex; flex-direction:column; gap:4px; min-width:170px;}
+  .field label{font-size:.85rem; color:var(--ink-soft); font-weight:700;}
+  .field input{font-size:1rem; padding:9px 10px; border-radius:8px; border:2px solid var(--line); background:#fff;}
+  .field.err input{border-color:var(--bad);}
+  .field.ok input{border-color:var(--good);}
+
+  .btn{font-weight:700; font-size:.95rem; border-radius:10px; border:none; padding:10px 18px; cursor:pointer; background:var(--indigo); color:#fff; margin-top:6px;}
+  .btn.secondary{background:transparent; color:var(--indigo); border:2px solid var(--indigo);}
+  .btn:hover{filter:brightness(1.08);}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+
+  .feedback{margin-top:12px; padding:12px 14px; border-radius:8px; font-size:.94rem; display:none;}
+  .feedback.show{display:block;}
+  .feedback.bad{background:var(--bad-tint); color:#7a231d; border-left:4px solid var(--bad);}
+  .feedback.good{background:var(--good-tint); color:var(--good); border-left:4px solid var(--good);}
+
+  .solution-box{margin-top:14px; background:var(--paper); border:1px dashed var(--line); border-radius:10px; padding:14px 16px; font-size:.93rem;}
+  .solution-box h4{margin-top:0;}
+  .win-banner{background:var(--good-tint); border:2px solid var(--good); border-radius:12px; padding:16px 18px; margin-top:16px;}
+  .win-banner h4{color:var(--good); margin-bottom:.3em;}
+
+  .overview-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-top:16px;}
+  .overview-item{border:2px solid var(--line); border-radius:10px; padding:10px 12px; font-size:.88rem; display:flex; justify-content:space-between; align-items:center; background:var(--surface);}
+  .overview-item.done{border-color:var(--good); background:var(--good-tint);}
+
+  footer{text-align:center; color:var(--ink-soft); font-size:.85rem; padding:30px 0 40px;}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <h1>Exam 1 Review</h1>
+    <p>Every question uses new random numbers. Get one wrong, and you'll get a fresh problem on the same skill to try again — get 3 in a row right to master it.</p>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="conv">Percent Conversions</button>
+  <button class="tab" data-tab="pct">Percent Applications</button>
+  <button class="tab" data-tab="stats">Statistics</button>
+  <button class="tab" data-tab="wages">Wages &amp; Salary</button>
+  <button class="tab" data-tab="mix">Mixed Exam Review</button>
+</nav>
+
+<main class="wrap">
+
+  <section id="panel-conv" class="panel active">
+    <h2>Percent Conversions</h2>
+    <div class="intro">Change between percents, decimals, and fractions. Remember: to turn a percent into a decimal, divide by 100 (move the decimal point two places left).</div>
+    <div class="chips" id="chips-conv"></div>
+    <div class="practice-shell"><div id="practice-conv"></div></div>
+  </section>
+
+  <section id="panel-pct" class="panel">
+    <h2>Percent Applications</h2>
+    <div class="intro">Every percent problem has a Base (the whole), a Part (the piece), and a Rate (the percent). Some problems give you a new total after a percent increase or decrease and ask for the original amount.</div>
+    <div class="chips" id="chips-pct"></div>
+    <div class="practice-shell"><div id="practice-pct"></div></div>
+  </section>
+
+  <section id="panel-stats" class="panel">
+    <h2>Statistics</h2>
+    <div class="intro">Mean (average), median (middle value once sorted), mode (most frequent value), and weighted mean (average that accounts for how often each value occurs).</div>
+    <div class="chips" id="chips-stats"></div>
+    <div class="practice-shell"><div id="practice-stats"></div></div>
+  </section>
+
+  <section id="panel-wages" class="panel">
+    <h2>Wages &amp; Salary</h2>
+    <div class="intro">Overtime pay, piecework vs. hourly pay, base salary plus commission, and converting an annual salary into a weekly paycheck.</div>
+    <div class="chips" id="chips-wages"></div>
+    <div class="practice-shell"><div id="practice-wages"></div></div>
+  </section>
+
+  <section id="panel-mix" class="panel">
+    <h2>Mixed Exam Review</h2>
+    <div class="intro">A random question from anywhere on Exam 1 each time — good for a final check before test day.</div>
+    <div class="practice-shell"><div id="practice-mix"></div></div>
+    <h3 style="margin-top:26px;">Your progress</h3>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </section>
+
+</main>
+
+<footer>Exam 1 Review — Adaptive Practice · Built for PEP Mathematics</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- TAB SWITCHING ---------------- */
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.classList.remove('active'); });
+      panels.forEach(function(p){ p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'mix') renderOverview();
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  /* ---------------- HELPERS ---------------- */
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function randChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function round2(n){ return Math.round(n*100)/100; }
+  function round1(n){ return Math.round(n*10)/10; }
+  function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t=b; b=a%b; a=t; } return a || 1; }
+  function money(n){ return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function closeEnough(a,b,tol){ return typeof a === 'number' && !isNaN(a) && Math.abs(a-b) <= tol; }
+  function parseNum(raw){
+    if (raw === undefined || raw === null) return NaN;
+    var s = String(raw).trim().replace(/[$,%\s]/g,'');
+    if (s === '') return NaN;
+    return parseFloat(s);
+  }
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+
+  /* ================= SUBTYPE DEFINITIONS ================= */
+  var SUBTYPES = {};
+
+  /* ---- Percent Conversions ---- */
+  SUBTYPES.pct2dec = {
+    cat:'conv', label:'Percent → Decimal',
+    gen: function(){
+      var R = randChoice([7,13,18,22,27,33,45,52,58,62,68,73,85,91, 6.5,7.5,12.5,17.5,22.5,33.5,42.5]);
+      return { R:R };
+    },
+    prompt: function(s){ return 'Write ' + s.R + '% as a decimal.'; },
+    fields: [
+      { key:'ans', label:'Decimal', expected:function(s){ return s.R/100; }, tol:0.0006,
+        mistakes:[
+          { test:function(v,s){ return closeEnough(v,s.R,0.01); }, msg:function(s){ return 'You wrote the percent number itself. Dividing by 100 moves the decimal point two places left: ' + s.R + '% → ' + (s.R/100) + '.'; } },
+          { test:function(v,s){ return closeEnough(v,s.R/10,0.01); }, msg:function(){ return 'You only moved the decimal point one place. Dividing by 100 moves it two places left.'; } }
+        ]
+      }
+    ],
+    solution: function(s){ return '<p>' + s.R + '% ÷ 100 = <strong>' + (s.R/100) + '</strong></p>'; }
+  };
+
+  var DEC_FACTS = [
+    {d:0.5, f:'1/2'},{d:0.25,f:'1/4'},{d:0.75,f:'3/4'},{d:0.2,f:'1/5'},{d:0.4,f:'2/5'},
+    {d:0.6,f:'3/5'},{d:0.8,f:'4/5'},{d:0.125,f:'1/8'},{d:0.375,f:'3/8'},{d:0.625,f:'5/8'},
+    {d:0.875,f:'7/8'},{d:0.1,f:'1/10'},{d:0.3,f:'3/10'},{d:0.7,f:'7/10'},{d:0.9,f:'9/10'},
+    {d:0.05,f:'1/20'},{d:0.15,f:'3/20'},{d:0.35,f:'7/20'},{d:0.45,f:'9/20'},{d:0.65,f:'13/20'},{d:0.85,f:'17/20'}
+  ];
+  function parseFraction(raw){
+    if (!raw) return null;
+    var parts = String(raw).trim().split('/');
+    if (parts.length !== 2) return null;
+    var a = parseFloat(parts[0]), b = parseFloat(parts[1]);
+    if (isNaN(a) || isNaN(b) || b === 0) return null;
+    return { a:a, b:b, val:a/b };
+  }
+  SUBTYPES.dec2pctfrac = {
+    cat:'conv', label:'Decimal → Fraction & Percent',
+    gen: function(){ var pick = randChoice(DEC_FACTS); return { d:pick.d, trueFrac:pick.f }; },
+    prompt: function(s){ return 'Write the decimal ' + s.d + ' as a fraction in lowest terms, and as a percent.'; },
+    fields: [
+      { key:'frac', label:'Fraction (e.g. 3/4)', isFraction:true, expected:function(s){ return s.trueFrac; }, tol:0.004,
+        mistakes:[
+          { test:function(v,s,raw){
+              var f = parseFraction(raw);
+              return f && closeEnough(f.val, s.d, 0.004) && gcd(f.a,f.b) !== 1;
+            }, msg:function(){ return 'Your fraction is equal to the decimal, but it isn\'t in lowest terms yet. Divide the top and bottom by their greatest common factor.'; } }
+        ]
+      },
+      { key:'pct', label:'Percent', expected:function(s){ return s.d*100; }, tol:0.06,
+        mistakes:[
+          { test:function(v,s){ return closeEnough(v,s.d,0.004); }, msg:function(){ return 'That\'s the decimal unchanged. Multiply by 100 to write it as a percent (move the decimal point two places right).'; } }
+        ]
+      }
+    ],
+    solution: function(s){ return '<p>' + s.d + ' = <strong>' + s.trueFrac + '</strong> = <strong>' + (s.d*100) + '%</strong></p>'; }
+  };
+
+  /* ---- Percent Applications ---- */
+  var PBASES = [20,25,40,50,60,75,80,100,120,150,160,200,250,300,350,400,500];
+  var PRATES = [5,10,15,20,25,30,35,40,45,50,55,60,62,65,68,70,75,80,85,90];
+  function genPBR(){
+    var B,R,P;
+    for (var i=0;i<40;i++){
+      B = randChoice(PBASES); R = randChoice(PRATES);
+      P = round2(B*R/100);
+      if (Number.isInteger(P) && P>0 && P<B) return {B:B,R:R,P:P};
+    }
+    return {B:B,R:R,P:round2(B*R/100)};
+  }
+  var PCTX = [
+    {noun:'people surveyed', place:'in a national poll', action:'said they prefer to vacation in Florida'},
+    {noun:'students', place:'at a middle school', action:'ride the bus to school'},
+    {noun:'residents', place:'in a small town', action:'own a car'},
+    {noun:'customers', place:'at a grocery store', action:'used a coupon'},
+    {noun:'employees', place:'at a company', action:'work remotely at least one day a week'}
+  ];
+
+  SUBTYPES.find_part = {
+    cat:'pct', label:'Find the Part',
+    gen: function(){ var n=genPBR(); var c=randChoice(PCTX); return {B:n.B,R:n.R,P:n.P,ctx:c}; },
+    prompt: function(s){ return 'Of ' + s.B + ' ' + s.ctx.noun + ' ' + s.ctx.place + ', ' + s.R + '% ' + s.ctx.action + '. How many ' + s.ctx.noun + ' ' + s.ctx.action + '?'; },
+    fields: [
+      { key:'dec', label:'Rate as a decimal', expected:function(s){ return round2(s.R/100); }, tol:0.006,
+        mistakes:[{ test:function(v,s){ return closeEnough(v,s.R,0.5); }, msg:function(s){ return 'That\'s the raw percent. Divide by 100: ' + s.R + '% ÷ 100 = ' + round2(s.R/100) + '.'; } }] },
+      { key:'ans', label:'Part', expected:function(s){ return s.P; }, tol:0.5,
+        mistakes:[{ test:function(v,s){ return closeEnough(v, s.B*s.R, 1); }, msg:function(s){ return 'It looks like you multiplied by ' + s.R + ' instead of the decimal ' + round2(s.R/100) + '. Use B × decimal rate: ' + s.B + ' × ' + round2(s.R/100) + ' = ' + s.P + '.'; } }] }
+    ],
+    solution: function(s){ return '<p>B = ' + s.B + ', R = ' + s.R + '% → ' + round2(s.R/100) + '</p><p>P = B × R = ' + s.B + ' × ' + round2(s.R/100) + ' = <strong>' + s.P + '</strong></p>'; }
+  };
+
+  SUBTYPES.find_base = {
+    cat:'pct', label:'Find the Base',
+    gen: function(){ var n=genPBR(); var c=randChoice(PCTX); return {B:n.B,R:n.R,P:n.P,ctx:c}; },
+    prompt: function(s){ return s.P + ' ' + s.ctx.noun + ' ' + s.ctx.action + '. This is ' + s.R + '% of all the ' + s.ctx.noun + ' ' + s.ctx.place + '. How many ' + s.ctx.noun + ' are there in total?'; },
+    fields: [
+      { key:'dec', label:'Rate as a decimal', expected:function(s){ return round2(s.R/100); }, tol:0.006,
+        mistakes:[{ test:function(v,s){ return closeEnough(v,s.R,0.5); }, msg:function(s){ return 'That\'s the raw percent. Divide by 100: ' + s.R + '% ÷ 100 = ' + round2(s.R/100) + '.'; } }] },
+      { key:'ans', label:'Base', expected:function(s){ return s.B; }, tol:0.5,
+        mistakes:[{ test:function(v,s){ return closeEnough(v, round2(s.P/s.R), 0.5); }, msg:function(s){ return 'It looks like you divided by ' + s.R + ' instead of the decimal ' + round2(s.R/100) + '. Use P ÷ decimal rate: ' + s.P + ' ÷ ' + round2(s.R/100) + ' = ' + s.B + '.'; } }] }
+    ],
+    solution: function(s){ return '<p>P = ' + s.P + ', R = ' + s.R + '% → ' + round2(s.R/100) + '</p><p>B = P ÷ R = ' + s.P + ' ÷ ' + round2(s.R/100) + ' = <strong>' + s.B + '</strong></p>'; }
+  };
+
+  SUBTYPES.find_rate = {
+    cat:'pct', label:'Find the Rate',
+    gen: function(){ var n=genPBR(); var c=randChoice(PCTX); return {B:n.B,R:n.R,P:n.P,ctx:c}; },
+    prompt: function(s){ return 'Out of ' + s.B + ' ' + s.ctx.noun + ' ' + s.ctx.place + ', ' + s.P + ' ' + s.ctx.action + '. What percent ' + s.ctx.action + '?'; },
+    fields: [
+      { key:'dec', label:'Decimal (Part ÷ Base)', expected:function(s){ return round2(s.P/s.B); }, tol:0.006,
+        mistakes:[{ test:function(v,s){ return closeEnough(v, round2(s.B/s.P), 0.006); }, msg:function(){ return 'You divided Base ÷ Part instead of Part ÷ Base. The part always goes on top.'; } }] },
+      { key:'ans', label:'Rate as a percent', expected:function(s){ return s.R; }, tol:0.6,
+        mistakes:[{ test:function(v,s){ return closeEnough(v, round2(s.P/s.B), 0.006); }, msg:function(){ return 'You found the decimal correctly but forgot to convert it to a percent. Multiply by 100.'; } }] }
+    ],
+    solution: function(s){ return '<p>R = P ÷ B = ' + s.P + ' ÷ ' + s.B + ' = ' + round2(s.P/s.B) + '</p><p>' + round2(s.P/s.B) + ' × 100 = <strong>' + s.R + '%</strong></p>'; }
+  };
+
+  function genOriginal(kind){
+    var Base = randChoice([320,350,400,420,450,480,500,520,560,600,650,700,750,800,850,900,950,1000,1200,1500,2000,5000,6000,7500,26000,28000,30000]);
+    var r = randChoice([4,5,6,8,10,12,15,16,18,20,25])/100;
+    var New = kind === 'increase' ? round2(Base*(1+r)) : round2(Base*(1-r));
+    return { Base:Base, New:New, r:r, pct: r*100 };
+  }
+  SUBTYPES.find_original_increase = {
+    cat:'pct', label:'Original Amount (Increase)',
+    gen: function(){ return genOriginal('increase'); },
+    prompt: function(s){ return 'After getting a ' + s.pct + '% raise, an employee\'s new salary is ' + money(s.New) + '. What was the salary before the increase?'; },
+    fields: [
+      { key:'ans', label:'Original salary', expected:function(s){ return s.Base; }, tol:1,
+        mistakes:[
+          { test:function(v,s){ return closeEnough(v, round2(s.New*(1+s.r)), 1); }, msg:function(){ return 'You multiplied by (1 + rate) instead of dividing. To undo an increase, divide the new amount by (1 + rate).'; } },
+          { test:function(v,s){ return closeEnough(v, round2(s.New/(1-s.r)), 1); }, msg:function(){ return 'That divides by (1 − rate), which undoes a decrease, not an increase. Since this was a raise, divide by (1 + rate).'; } }
+        ] }
+    ],
+    solution: function(s){ return '<p>New = Original × (1 + rate)</p><p>Original = ' + money(s.New) + ' ÷ (1 + ' + s.r + ') = <strong>' + money(s.Base) + '</strong></p>'; }
+  };
+  SUBTYPES.find_original_decrease = {
+    cat:'pct', label:'Original Amount (Decrease)',
+    gen: function(){ return genOriginal('decrease'); },
+    prompt: function(s){ return 'New-home sales this year were ' + s.pct + '% fewer than last year. If ' + s.New + ' homes were sold this year, about how many were sold last year?'; },
+    fields: [
+      { key:'ans', label:'Last year\'s sales', expected:function(s){ return s.Base; }, tol:1,
+        mistakes:[
+          { test:function(v,s){ return closeEnough(v, round2(s.New*(1-s.r)), 1); }, msg:function(){ return 'You multiplied by (1 − rate) instead of dividing. To undo a decrease, divide the new amount by (1 − rate).'; } },
+          { test:function(v,s){ return closeEnough(v, round2(s.New/(1+s.r)), 1); }, msg:function(){ return 'That divides by (1 + rate), which undoes an increase, not a decrease. Since sales fell, divide by (1 − rate).'; } }
+        ] }
+    ],
+    solution: function(s){ return '<p>New = Original × (1 − rate)</p><p>Original = ' + s.New + ' ÷ (1 − ' + s.r + ') ≈ <strong>' + s.Base + '</strong></p>'; }
+  };
+
+  /* ---- Statistics ---- */
+  SUBTYPES.mean = {
+    cat:'stats', label:'Mean',
+    gen: function(){ var nums=[]; for(var i=0;i<7;i++) nums.push(randInt(40,95)); return {nums:nums}; },
+    prompt: function(s){ return 'Find the mean of the following set of numbers.\n' + s.nums.join(', '); },
+    fields: [
+      { key:'ans', label:'Mean', expected:function(s){ return round1(s.nums.reduce(function(a,b){return a+b;},0)/s.nums.length); }, tol:0.15,
+        mistakes:[] }
+    ],
+    solution: function(s){ var sum=s.nums.reduce(function(a,b){return a+b;},0); return '<p>Sum = ' + sum + ', count = ' + s.nums.length + '</p><p>Mean = ' + sum + ' ÷ ' + s.nums.length + ' = <strong>' + round1(sum/s.nums.length) + '</strong></p>'; }
+  };
+  SUBTYPES.median = {
+    cat:'stats', label:'Median',
+    gen: function(){
+      var nums=[]; for(var i=0;i<7;i++) nums.push(randInt(10,95));
+      var sorted = nums.slice().sort(function(a,b){return a-b;});
+      return {nums:nums, sorted:sorted, med:sorted[3]};
+    },
+    prompt: function(s){ return 'Find the median of the following set of numbers.\n' + s.nums.join(', '); },
+    fields: [
+      { key:'ans', label:'Median', expected:function(s){ return s.med; }, tol:0.01,
+        mistakes:[{ test:function(v,s){ return closeEnough(v, s.nums[3], 0.01) && s.nums[3] !== s.med; }, msg:function(){ return 'That\'s the middle value in the order the numbers were listed — but you have to sort them from least to greatest first, then take the middle one.'; } }] }
+    ],
+    solution: function(s){ return '<p>Sorted: ' + s.sorted.join(', ') + '</p><p>Middle value = <strong>' + s.med + '</strong></p>'; }
+  };
+  SUBTYPES.mode = {
+    cat:'stats', label:'Mode',
+    gen: function(){
+      var hasMode = Math.random() < 0.7;
+      var nums;
+      if (hasMode){
+        var modeVal = randInt(10,90);
+        var others = [];
+        while (others.length < 4){
+          var v = randInt(10,90);
+          if (v !== modeVal && others.indexOf(v) === -1) others.push(v);
+        }
+        nums = shuffle([modeVal,modeVal,modeVal].concat(others));
+        return {nums:nums, mode:String(modeVal)};
+      } else {
+        var set = [];
+        while (set.length < 7){
+          var v2 = randInt(10,90);
+          if (set.indexOf(v2) === -1) set.push(v2);
+        }
+        return {nums:set, mode:'None'};
+      }
+    },
+    prompt: function(s){ return 'Find the mode of the following set of numbers. If there is no mode, write None.\n' + s.nums.join(', '); },
+    fields: [
+      { key:'ans', label:'Mode', isFraction:false, isText:true, expected:function(s){ return s.mode; }, tol:0,
+        mistakes:[{ test:function(v,s,raw){ var r=String(raw||'').trim(); return s.mode==='None' && r!=='' && s.nums.indexOf(parseFloat(r))>-1; }, msg:function(){ return 'That number does appear in the set, but every number here shows up the same number of times — there is no most-frequent value, so the answer is None.'; } },
+                  { test:function(v,s,raw){ var r=String(raw||'').trim(); return s.mode!=='None' && s.nums.indexOf(parseFloat(r))>-1 && parseFloat(r)!==parseFloat(s.mode); }, msg:function(){ return 'That number is in the set, but it isn\'t the one that repeats the most. Count how many times each number appears.'; } }] }
+    ],
+    solution: function(s){ return '<p>Numbers: ' + s.nums.join(', ') + '</p><p>Mode = <strong>' + s.mode + '</strong></p>'; }
+  };
+  SUBTYPES.weighted_mean = {
+    cat:'stats', label:'Weighted Mean',
+    gen: function(){
+      var base = randInt(4,14);
+      var values = [base, base+randInt(1,3), base+randInt(4,7), base+randInt(8,11)];
+      var freqs = [randInt(1,8), randInt(1,8), randInt(1,8), randInt(1,8)];
+      var sumVF = 0, sumF = 0;
+      for (var i=0;i<4;i++){ sumVF += values[i]*freqs[i]; sumF += freqs[i]; }
+      return { values:values, freqs:freqs, wmean: round1(sumVF/sumF) };
+    },
+    prompt: function(s){
+      return 'Use the chart of quiz scores to find the weighted mean. Round to the nearest tenth.\nScore | Frequency\n' +
+        s.values.map(function(v,i){ return v + ' | ' + s.freqs[i]; }).join('\n');
+    },
+    fields: [
+      { key:'ans', label:'Weighted mean', expected:function(s){ return s.wmean; }, tol:0.15,
+        mistakes:[{ test:function(v,s){ var simple = round1(s.values.reduce(function(a,b){return a+b;},0)/s.values.length); return !closeEnough(simple,s.wmean,0.15) && closeEnough(v,simple,0.1); }, msg:function(){ return 'That\'s the plain average of the scores, ignoring how often each one occurs. Multiply each score by its frequency first, add those up, then divide by the total frequency.'; } }] }
+    ],
+    solution: function(s){
+      var terms = s.values.map(function(v,i){ return v+'×'+s.freqs[i]; }).join(' + ');
+      var sumVF = s.values.reduce(function(a,v,i){ return a+v*s.freqs[i]; },0);
+      var sumF = s.freqs.reduce(function(a,b){return a+b;},0);
+      return '<p>(' + terms + ') ÷ (' + s.freqs.join('+') + ') = ' + sumVF + ' ÷ ' + sumF + ' = <strong>' + s.wmean + '</strong></p>';
+    }
+  };
+
+  /* ---- Wages & Salary ---- */
+  SUBTYPES.overtime = {
+    cat:'wages', label:'Overtime Pay',
+    gen: function(){
+      var rate = randChoice([7.25,7.40,7.50,8.00,8.25,8.50,9.00,9.60,10.00,10.25,10.50,11.00,12.00]);
+      var hours = randInt(41,52);
+      var gross = round2(40*rate + (hours-40)*rate*1.5);
+      return { rate:rate, hours:hours, gross:gross };
+    },
+    prompt: function(s){ return 'Last week, an employee worked ' + s.hours + ' hours. Find gross earnings for the week if paid ' + money(s.rate) + ' per hour and time-and-a-half for hours over 40. Round to the nearest cent.'; },
+    fields: [
+      { key:'ans', label:'Gross earnings', expected:function(s){ return s.gross; }, tol:0.02,
+        mistakes:[
+          { test:function(v,s){ return closeEnough(v, round2(s.hours*s.rate), 0.02); }, msg:function(){ return 'That pays every hour at the regular rate. Hours over 40 must be paid at time-and-a-half (1.5×).'; } },
+          { test:function(v,s){ return closeEnough(v, round2(s.hours*s.rate*1.5), 0.02); }, msg:function(){ return 'That pays all the hours at 1.5×, but only the hours over 40 get the overtime rate — the first 40 are paid regular time.'; } }
+        ] }
+    ],
+    solution: function(s){ return '<p>Regular: 40 × ' + money(s.rate) + ' = ' + money(round2(40*s.rate)) + '</p><p>Overtime: ' + (s.hours-40) + ' × ' + money(s.rate) + ' × 1.5 = ' + money(round2((s.hours-40)*s.rate*1.5)) + '</p><p>Total = <strong>' + money(s.gross) + '</strong></p>'; }
+  };
+
+  SUBTYPES.piecework = {
+    cat:'wages', label:'Piecework vs. Hourly',
+    gen: function(){
+      var pieceRate = randChoice([1.60,1.70,1.75,1.80,1.90,2.00,2.10,2.25]);
+      var hourlyRate = randChoice([8.50,9.00,9.60,10.00,10.50,11.00]);
+      var days = ['M','T','W','Th','F'];
+      var pieces = days.map(function(){ return randInt(48,80); });
+      var dailyMin = 8*hourlyRate;
+      var total = 0;
+      var breakdown = pieces.map(function(p){
+        var pieceWage = round2(p*pieceRate);
+        var wage = Math.max(pieceWage, dailyMin);
+        total += wage;
+        return wage;
+      });
+      return { pieceRate:pieceRate, hourlyRate:hourlyRate, days:days, pieces:pieces, total:round2(total), dailyMin:round2(dailyMin) };
+    },
+    prompt: function(s){
+      return 'An employee is paid by the day, either on a piecework basis or at an hourly rate for an 8-hour day, whichever is greater. She is paid ' + money(s.pieceRate) + ' per item tested, or ' + money(s.hourlyRate) + ' per hour. Her production for the week:\n' +
+        s.days.map(function(d,i){ return d + ': ' + s.pieces[i]; }).join('   ') +
+        '\nWhat are her gross earnings for the week?';
+    },
+    fields: [
+      { key:'ans', label:'Weekly gross earnings', expected:function(s){ return s.total; }, tol:0.05,
+        mistakes:[
+          { test:function(v,s){ var allPiece = round2(s.pieces.reduce(function(a,b){return a+b;},0)*s.pieceRate); return !closeEnough(allPiece,s.total,0.05) && closeEnough(v,allPiece,0.05); }, msg:function(){ return 'That uses piecework pay for every day. Each day, she\'s paid whichever is greater — some days the flat 8-hour rate may pay more than her pieces did.'; } },
+          { test:function(v,s){ var allHourly = round2(5*8*s.hourlyRate); return !closeEnough(allHourly,s.total,0.05) && closeEnough(v,allHourly,0.05); }, msg:function(){ return 'That uses the hourly rate for every day. Check each day separately — on days she produced enough pieces, piecework may pay more.'; } }
+        ] }
+    ],
+    solution: function(s){
+      var lines = s.days.map(function(d,i){
+        var pieceWage = round2(s.pieces[i]*s.pieceRate);
+        var wage = Math.max(pieceWage, s.dailyMin);
+        return d + ': ' + s.pieces[i] + ' × ' + money(s.pieceRate) + ' = ' + money(pieceWage) + ' vs. ' + money(s.dailyMin) + ' → pays ' + money(wage);
+      }).join('<br>');
+      return '<p>' + lines + '</p><p>Total = <strong>' + money(s.total) + '</strong></p>';
+    }
+  };
+
+  SUBTYPES.commission = {
+    cat:'wages', label:'Base Salary + Commission',
+    gen: function(){
+      var base = randChoice([350,375,400,408,425,450]);
+      var t1rate = randChoice([0.004,0.005,0.006,0.007,0.008]);
+      var t2rate = randChoice([0.01,0.012,0.015,0.018,0.02]);
+      var t1 = randChoice([10000,12000,15000]);
+      var t2 = t1 + randChoice([8000,10000,12000]);
+      var bothTiers = Math.random() < 0.5;
+      var sales = bothTiers ? randInt(t2+500, t2+8000) : randInt(t1+500, t2-500);
+      var tier1Amt = Math.max(0, Math.min(sales,t2) - t1);
+      var tier2Amt = Math.max(0, sales - t2);
+      var gross = round2(base + tier1Amt*t1rate + tier2Amt*t2rate);
+      return { base:base, t1rate:t1rate, t2rate:t2rate, t1:t1, t2:t2, sales:sales, gross:gross, tier1Amt:tier1Amt, tier2Amt:tier2Amt };
+    },
+    prompt: function(s){
+      return 'A salesperson is paid a base salary of ' + money(s.base) + ' a week, a commission of ' + (s.t1rate*100) + '% on sales above ' + money(s.t1) + ' up to ' + money(s.t2) + ', and a commission of ' + (s.t2rate*100) + '% on sales in excess of ' + money(s.t2) + '. Sales for the week were ' + money(s.sales) + '. What were the gross earnings for the week?';
+    },
+    fields: [
+      { key:'ans', label:'Gross earnings', expected:function(s){ return s.gross; }, tol:0.05,
+        mistakes:[
+          { test:function(v,s){ var alt = round2(s.base + s.sales*s.t1rate); return !closeEnough(alt,s.gross,0.05) && closeEnough(v,alt,0.05); }, msg:function(){ return 'It looks like the commission rate was applied to all of the sales. Commission only applies to the amount of sales that falls within each tier, not the full sales total.'; } },
+          { test:function(v,s){ return !closeEnough(s.base,s.gross,0.05) && closeEnough(v, s.base, 0.05); }, msg:function(){ return 'That\'s only the base salary — don\'t forget to add the commission earned on sales above the threshold.'; } }
+        ] }
+    ],
+    solution: function(s){
+      var l = '<p>Base = ' + money(s.base) + '</p>';
+      l += '<p>Tier 1: ' + money(s.tier1Amt) + ' × ' + (s.t1rate*100) + '% = ' + money(round2(s.tier1Amt*s.t1rate)) + '</p>';
+      if (s.tier2Amt > 0) l += '<p>Tier 2: ' + money(s.tier2Amt) + ' × ' + (s.t2rate*100) + '% = ' + money(round2(s.tier2Amt*s.t2rate)) + '</p>';
+      l += '<p>Total = <strong>' + money(s.gross) + '</strong></p>';
+      return l;
+    }
+  };
+
+  SUBTYPES.annual_to_weekly = {
+    cat:'wages', label:'Annual → Weekly Salary',
+    gen: function(){
+      var annual = randChoice([24000,26000,28500,30000,31200,32500,34684,36400,38000,40560,42000,45500,48000,52000,56000,60000]);
+      return { annual:annual, weekly: round2(annual/52) };
+    },
+    prompt: function(s){ return 'A person earns a salary of ' + money(s.annual) + ' a year and is paid weekly. How much is the weekly paycheck before taxes? Round to the nearest cent.'; },
+    fields: [
+      { key:'ans', label:'Weekly paycheck', expected:function(s){ return s.weekly; }, tol:0.02,
+        mistakes:[
+          { test:function(v,s){ return closeEnough(v, round2(s.annual/12), 0.02); }, msg:function(){ return 'That divides by 12 — that gives a monthly amount, not weekly. A year has 52 weeks.'; } },
+          { test:function(v,s){ return closeEnough(v, round2(s.annual/50), 0.02); }, msg:function(){ return 'A year has 52 weeks, not 50 — divide by 52.'; } }
+        ] }
+    ],
+    solution: function(s){ return '<p>' + money(s.annual) + ' ÷ 52 = <strong>' + money(s.weekly) + '</strong></p>'; }
+  };
+
+  /* ---------------- CATEGORY LISTS ---------------- */
+  var CATS = {
+    conv: ['pct2dec','dec2pctfrac'],
+    pct: ['find_part','find_base','find_rate','find_original_increase','find_original_decrease'],
+    stats: ['mean','median','mode','weighted_mean'],
+    wages: ['overtime','piecework','commission','annual_to_weekly']
+  };
+  var ALL_IDS = CATS.conv.concat(CATS.pct, CATS.stats, CATS.wages);
+
+  var mastery = {}; // id -> true when mastered
+  ALL_IDS.forEach(function(id){ mastery[id] = false; });
+
+  /* ---------------- CHIP + WIDGET WIRING ---------------- */
+  function buildChips(catKey, containerId, chipsId){
+    var ids = CATS[catKey];
+    var chipsEl = document.getElementById(chipsId);
+    var current = ids[0];
+    var allLabel = 'All in this section';
+
+    function renderChips(){
+      var html = '<button class="chip'+(current==='ALL'?' active':'')+'" data-id="ALL">' + allLabel + '</button>';
+      ids.forEach(function(id){
+        html += '<button class="chip'+(current===id?' active':'')+'" data-id="'+id+'">' + SUBTYPES[id].label + (mastery[id] ? ' <span class="badge">✅</span>' : '') + '</button>';
+      });
+      chipsEl.innerHTML = html;
+      chipsEl.querySelectorAll('.chip').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          current = btn.dataset.id;
+          renderChips();
+          widget.setMode(current);
+        });
+      });
+    }
+    renderChips();
+    current = 'ALL';
+    renderChips();
+
+    var widget = initPractice(containerId, function(){
+      return current === 'ALL' ? randChoice(ids) : current;
+    }, function(id){ mastery[id]=true; renderChips(); });
+
+    return widget;
+  }
+
+  function initPractice(containerId, pickId, onMastered){
+    var container = document.getElementById(containerId);
+    var state = {}, subId = '', streak = 0;
+
+    function newProblem(){
+      subId = pickId();
+      var def = SUBTYPES[subId];
+      state = def.gen();
+      state._id = subId;
+      render();
+    }
+
+    function setMode(){ streak = 0; newProblem(); }
+
+    function render(){
+      var def = SUBTYPES[subId];
+      var html = '';
+      html += '<div class="status-row"><span class="pill streak-pill">Streak: ' + streak + ' / 3</span><span class="pill">' + def.label + '</span></div>';
+      if (mastery[subId] && streak === 0){
+        html += '<div class="mastered-banner">✅ You\'ve mastered this skill — keep going for extra practice any time.</div>';
+      }
+      html += '<div class="problem-text">' + escapeHtml(def.prompt(state)).replace(/\n/g,'<br>') + '</div>';
+      html += '<div class="field-row">';
+      def.fields.forEach(function(f){
+        html += '<div class="field" id="'+containerId+'-f-'+f.key+'"><label for="'+containerId+'-in-'+f.key+'">'+f.label+'</label><input type="text" id="'+containerId+'-in-'+f.key+'" placeholder="answer"></div>';
+      });
+      html += '</div>';
+      html += '<div class="btn-row">';
+      html += '<button class="btn" data-action="check">Check my answer</button>';
+      html += '<button class="btn secondary" data-action="stuck">Show solution</button>';
+      html += '<button class="btn secondary" data-action="new">New problem</button>';
+      html += '</div>';
+      html += '<div class="feedback" id="'+containerId+'-fb"></div>';
+      html += '<div id="'+containerId+'-solution"></div>';
+      html += '<div id="'+containerId+'-win"></div>';
+      container.innerHTML = html;
+
+      container.querySelector('[data-action="check"]').addEventListener('click', checkAnswer);
+      container.querySelector('[data-action="stuck"]').addEventListener('click', showSolution);
+      container.querySelector('[data-action="new"]').addEventListener('click', function(){ streak = 0; newProblem(); });
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; });
+    }
+
+    function checkAnswer(){
+      var def = SUBTYPES[subId];
+      var allOk = true;
+      var firstMsg = null;
+      def.fields.forEach(function(f){
+        var raw = document.getElementById(containerId+'-in-'+f.key).value;
+        var expected = f.expected(state);
+        var ok;
+        if (f.isText){
+          ok = String(raw).trim().toLowerCase() === String(expected).trim().toLowerCase();
+        } else if (f.isFraction){
+          var parsed = parseFraction(raw);
+          if (parsed){
+            var expVal = (typeof expected === 'string') ? parseFraction(expected).val : expected;
+            ok = closeEnough(parsed.val, expVal, f.tol) && gcd(parsed.a,parsed.b)===1;
+          } else {
+            ok = false;
+          }
+        } else {
+          var v = parseNum(raw);
+          ok = closeEnough(v, expected, f.tol);
+        }
+        var fieldEl = document.getElementById(containerId+'-f-'+f.key);
+        fieldEl.classList.remove('ok','err');
+        fieldEl.classList.add(ok ? 'ok' : 'err');
+        if (!ok){
+          allOk = false;
+          if (!firstMsg){
+            var vNum = f.isFraction ? raw : parseNum(raw);
+            for (var i=0;i<(f.mistakes||[]).length;i++){
+              if (f.mistakes[i].test(vNum, state, raw)){ firstMsg = f.mistakes[i].msg(state); break; }
+            }
+          }
+        }
+      });
+
+      var fb = document.getElementById(containerId+'-fb');
+      if (allOk){
+        streak++;
+        fb.className = 'feedback show good';
+        fb.innerHTML = '✅ Correct!';
+        if (streak >= 3 && !mastery[subId]){
+          onMastered(subId);
+        }
+        finishSuccess();
+      } else {
+        streak = 0;
+        fb.className = 'feedback show bad';
+        fb.innerHTML = '❌ ' + (firstMsg || 'Not quite — check your setup and try again, or try a fresh problem below.');
+      }
+    }
+
+    function finishSuccess(){
+      var def = SUBTYPES[subId];
+      var win = document.getElementById(containerId+'-win');
+      win.innerHTML = '<div class="win-banner"><h4>Nice work!</h4><div>' + def.solution(state) + '</div><button class="btn" data-action="next">Try another problem</button></div>';
+      win.querySelector('[data-action="next"]').addEventListener('click', newProblem);
+    }
+
+    function showSolution(){
+      var def = SUBTYPES[subId];
+      document.getElementById(containerId+'-solution').innerHTML = '<div class="solution-box"><h4>Full solution</h4>' + def.solution(state) + '</div>';
+    }
+
+    newProblem();
+    return { setMode: setMode };
+  }
+
+  buildChips('conv','practice-conv','chips-conv');
+  buildChips('pct','practice-pct','chips-pct');
+  buildChips('stats','practice-stats','chips-stats');
+  buildChips('wages','practice-wages','chips-wages');
+
+  initPractice('practice-mix', function(){ return randChoice(ALL_IDS); }, function(id){ mastery[id]=true; renderOverview(); });
+
+  function renderOverview(){
+    var grid = document.getElementById('overviewGrid');
+    var html = '';
+    ALL_IDS.forEach(function(id){
+      html += '<div class="overview-item'+(mastery[id]?' done':'')+'"><span>'+SUBTYPES[id].label+'</span><span>'+(mastery[id]?'✅':'—')+'</span></div>';
+    });
+    grid.innerHTML = html;
+  }
+  renderOverview();
+
+})();
+</script>
+</body>
+</html>
